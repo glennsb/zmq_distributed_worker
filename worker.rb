@@ -5,7 +5,7 @@ require 'json'
 
 Thread.abort_on_exception = true
 
-@context     = ZMQ::Context.new
+@context = ZMQ::Context.new
 @sema = Mutex.new
 @keep_working = true
 @runners_to_have = 9
@@ -23,43 +23,43 @@ end
 
 def reply(msg)
   @sema.synchronize do
-    @push.send_string msg
+    @push_to_logger.send_string msg.to_json
   end
 end
 
-@push        = @context.socket(ZMQ::PUSH)
-error_check @push.bind 'tcp://127.0.0.1:5555'
+@push_to_logger = @context.socket(ZMQ::PUSH)
+error_check @push_to_logger.bind 'tcp://127.0.0.1:5555'
 
 @runners_to_have.times do |i|
   @runners << Thread.new do
-    pull        = @context.socket(ZMQ::PULL)
-    rc = pull.connect 'tcp://127.0.0.1:5556'
+    request_work = @context.socket(ZMQ::REQ)
+    rc = request_work.connect 'tcp://127.0.0.1:5557'
     error_check(rc)
-    poller = ZMQ::Poller.new
-    poller.register(pull, ZMQ::POLLIN)
     while @keep_working do
       msg = ''
       rc = 0
-      poller.poll(30000)
-      #puts "Done poll"
-      poller.readables.each do |socket|
-        rc = socket.recv_string(msg)
-        error_check(rc)
-        next if nil == msg || '' == msg
-        #puts msg
-        reply_msg = "#{i} Start: #{msg}"
+      request_work.send_string("WORK PLEASE")
+      rc = request_work.recv_string(msg)
+      error_check(rc)
+      next if nil == msg || '' == msg
+
+      payload = JSON.parse(msg)
+      if nil == payload['id'] then
+        #no work
+        sleep 10
+        next
+      end
+      reply_msg = {:id => payload['id'], :msg => "#{i} Start: #{msg}"}
+      #reply(reply_msg)
+      if "quit" == payload['payload']
+        @keep_working = false
+        reply({:id =>  payload['id'], :msg => "#{i} Will shutdown soon"})
+      else
+        sleep rand(10)*2
+        reply_msg = {:id => payload['id'], :msg => "#{i} Finish: #{msg}"}
         reply(reply_msg)
-        if "quit" == JSON.parse(msg)['payload']
-          @keep_working = false
-          reply("#{i} Will shutdown soon")
-        else
-          sleep rand(10)*2
-          reply_msg = "#{i} Finish: #{msg}"
-          reply(reply_msg)
-        end
-        msg = ''
-      end #end poller
-      #sleep 10
+      end
+      msg = ''
     end #@keep_workinging
   end #Thread
 end
