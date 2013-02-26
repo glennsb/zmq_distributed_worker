@@ -30,7 +30,7 @@ logger = Thread.new do
         run_time = job_statii[payload['id']][:finished_at] - job_statii[payload['id']][:started_at]
       end
     end
-    puts "LOG: #{payload['id']}/#{payload['msg']} done took #{run_time}"
+    puts "LOG: #{payload['id']}/#{payload} done took #{run_time}"
     msg = ''
   end
 end

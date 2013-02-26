@@ -1,5 +1,4 @@
 require 'ffi-rzmq'
-#require 'omrf/logged_external_command'
 require 'securerandom'
 require 'json'
 
@@ -13,16 +12,24 @@ def error_check(rc)
   end
 end
 
-context     = ZMQ::Context.new
-push        = context.socket(ZMQ::PUSH)
+context = ZMQ::Context.new
+push = context.socket(ZMQ::PUSH)
 #error_check(push.setsockopt(ZMQ::LINGER, 0))
 error_check push.bind 'tcp://127.0.0.1:5556'
  
-msg = ARGV.shift if ARGV.size > 0
-
-id = SecureRandom.uuid
-msg = {:payload=>msg,:id=>id}.to_json
-error_check push.send_string(msg)
-puts "Sent #{msg}"
+cwd = ARGV.shift
+raise "Missing cwd param" unless cwd
+if "quit" == cwd
+  id = SecureRandom.uuid
+  msg = {:payload=>'quit',:id=>id}.to_json
+  error_check push.send_string(msg)
+else
+  ARGV.each do |id|
+    msg_id = SecureRandom.uuid
+    msg = {:payload=>{:sample_id=>id,:cwd=>cwd},:id=>msg_id}.to_json
+    error_check push.send_string(msg)
+    puts "Sent #{msg}"
+  end
+end
 push.close
 context.terminate

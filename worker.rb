@@ -1,7 +1,7 @@
 require 'ffi-rzmq'
-#require 'omrf/logged_external_command'
 require 'securerandom'
 require 'json'
+require 'job'
 
 Thread.abort_on_exception = true
 
@@ -49,14 +49,15 @@ error_check @push_to_logger.bind 'tcp://127.0.0.1:5555'
         sleep 10
         next
       end
-      reply_msg = {:id => payload['id'], :msg => "#{i} Start: #{msg}"}
-      #reply(reply_msg)
       if "quit" == payload['payload']
         @keep_working = false
         reply({:id =>  payload['id'], :msg => "#{i} Will shutdown soon"})
       else
-        sleep rand(10)*2
-        reply_msg = {:id => payload['id'], :msg => "#{i} Finish: #{msg}"}
+        wd = payload['payload']['cwd']
+        sample_id = payload['payload']['sample_id']
+        job = AnalyzeJob.new(wd,sample_id)
+        reply_msg = {:id => payload['id'], :sample_id => sample_id}
+        reply_msg[:status] = job.execute()
         reply(reply_msg)
       end
       msg = ''
