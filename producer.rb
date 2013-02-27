@@ -15,7 +15,7 @@ end
 context = ZMQ::Context.new
 push = context.socket(ZMQ::PUSH)
 #error_check(push.setsockopt(ZMQ::LINGER, 0))
-error_check push.bind 'tcp://127.0.0.1:5556'
+error_check push.bind 'tcp://*:4556'
  
 cwd = ARGV.shift
 raise "Missing cwd param" unless cwd
@@ -24,11 +24,13 @@ if "quit" == cwd
   msg = {:payload=>'quit',:id=>id}.to_json
   error_check push.send_string(msg)
 else
+  start_port = 5000
   ARGV.each do |id|
     msg_id = SecureRandom.uuid
-    msg = {:payload=>{:sample_id=>id,:cwd=>cwd},:id=>msg_id}.to_json
+    msg = {:payload=>{:sample_id=>id,:cwd=>cwd, :port=>start_port},:id=>msg_id}.to_json
     error_check push.send_string(msg)
     puts "Sent #{msg}"
+    start_port += 25
   end
 end
 push.close

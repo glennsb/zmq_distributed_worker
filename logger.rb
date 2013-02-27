@@ -1,5 +1,4 @@
 require 'ffi-rzmq'
-#require 'omrf/logged_external_command'
 require 'securerandom'
 require 'json'
 
@@ -16,28 +15,29 @@ context = ZMQ::Context.new
 
 logger = Thread.new do
   incoming_results = context.socket(ZMQ::PULL)
-  incoming_results.connect 'tcp://127.0.0.1:5555'
+  ARGV.each do |worker_host|
+    incoming_results.connect("tcp://#{worker_host}:4555")
+  end
  
   msg = ''
   while incoming_results.recv_string(msg)
     next if '' == msg
     payload = JSON.parse(msg)
-    run_time = nil
     jobs_mutex.synchronize do
       unless -1 == payload['id']
         jobs_running.delete(payload['id'])
         job_statii[payload['id']][:finished_at] = Time.now
-        run_time = job_statii[payload['id']][:finished_at] - job_statii[payload['id']][:started_at]
+        payload[:run_time] = job_statii[payload['id']][:finished_at] - job_statii[payload['id']][:started_at]
       end
     end
-    puts "LOG: #{payload['id']}/#{payload} done took #{run_time}"
+    puts payload.to_json
     msg = ''
   end
 end
 
 job_receiver = Thread.new do
   incoming_job = context.socket(ZMQ::PULL)
-  incoming_job.connect('tcp://127.0.0.1:5556')
+  incoming_job.connect('tcp://golova:4556')
 
   msg = ''
   while incoming_job.recv_string(msg)
@@ -55,7 +55,7 @@ job_receiver = Thread.new do
 end
 
 job_controller = context.socket(ZMQ::REP)
-job_controller.bind('tcp://127.0.0.1:5557')
+job_controller.bind('tcp://*:4557')
 
 while true
   msg = ''
