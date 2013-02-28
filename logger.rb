@@ -14,9 +14,10 @@ shutdown_workers = false
 context = ZMQ::Context.new
 
 logger = Thread.new do
+  STDOUT.sync = true
   incoming_results = context.socket(ZMQ::PULL)
   ARGV.each do |worker_host|
-    incoming_results.connect("tcp://#{worker_host}:4555")
+    incoming_results.connect("tcp://#{worker_host}:3555")
   end
  
   msg = ''
@@ -37,7 +38,7 @@ end
 
 job_receiver = Thread.new do
   incoming_job = context.socket(ZMQ::PULL)
-  incoming_job.connect('tcp://golova:4556')
+  incoming_job.connect('tcp://golova:3556')
 
   msg = ''
   while incoming_job.recv_string(msg)
@@ -55,7 +56,7 @@ job_receiver = Thread.new do
 end
 
 job_controller = context.socket(ZMQ::REP)
-job_controller.bind('tcp://*:4557')
+job_controller.bind('tcp://*:3557')
 
 while true
   msg = ''

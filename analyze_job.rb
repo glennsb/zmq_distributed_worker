@@ -7,18 +7,19 @@ class AnalyzeJob
     @base_dir = base_dir
   end
   def execute()
+    if "noop" == @sample_id
+      return {:exit_status => 0}
+    end
     begin
-      Dir.chdir(File.join(@base_dir,@sample_id)) do
-        log_file = File.open(File.join("logs","#{@sample_id}_full_worker.txt"),"w+")
-        log_file.sync = true
-        logger = OMRF::FstreamLogger.new(log_file,log_file)
-        cmd = "./analyze.sh"
-        c = OMRF::LoggedExternalCommand.new(cmd,logger)
-        if c.run
-          return {:exit_status => 0}
-        else
-          return {:exit_status => c.exit_status}
-        end
+      log_file = File.open(File.join(@base_dir,@sample_id,"logs","#{@sample_id}_full_worker.txt"),"w+")
+      log_file.sync = true
+      logger = OMRF::FstreamLogger.new(log_file,log_file)
+      cmd = "#{@base_dir}/#{@sample_id}/analyze.sh"
+      c = OMRF::LoggedExternalCommand.new(cmd,logger)
+      if c.run
+        return {:exit_status => 0}
+      else
+        return {:exit_status => c.exit_status}
       end
       return {:exit_status => -1}
     rescue => err

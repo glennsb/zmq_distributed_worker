@@ -15,7 +15,7 @@ end
 context = ZMQ::Context.new
 push = context.socket(ZMQ::PUSH)
 #error_check(push.setsockopt(ZMQ::LINGER, 0))
-error_check push.bind 'tcp://*:4556'
+error_check push.bind 'tcp://*:3556'
  
 cwd = ARGV.shift
 raise "Missing cwd param" unless cwd

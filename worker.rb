@@ -1,14 +1,19 @@
 require 'ffi-rzmq'
 require 'securerandom'
 require 'json'
-require 'frfast_job'
+require 'analyze_job'
 
 Thread.abort_on_exception = true
 
+ENV.each do |name,val|
+  if name =~ /.*(ruby|gem|irb|bundle|rvm).*/i
+    ENV.delete(name)
+  end
+end
 @context = ZMQ::Context.new
 @sema = Mutex.new
 @keep_working = true
-@runners_to_have = 15
+@runners_to_have = 30
 @runners = []
 
 def error_check(rc)
@@ -28,12 +33,12 @@ def reply(msg)
 end
 
 @push_to_logger = @context.socket(ZMQ::PUSH)
-error_check @push_to_logger.bind 'tcp://*:4555'
+error_check @push_to_logger.bind 'tcp://*:3555'
 
 @runners_to_have.times do |i|
   @runners << Thread.new do
     request_work = @context.socket(ZMQ::REQ)
-    rc = request_work.connect 'tcp://golova:4557'
+    rc = request_work.connect 'tcp://golova:3557'
     error_check(rc)
     while @keep_working do
       msg = ''
@@ -55,8 +60,7 @@ error_check @push_to_logger.bind 'tcp://*:4555'
       else
         wd = payload['payload']['cwd']
         sample_id = payload['payload']['sample_id']
-        port = payload['payload']['port']
-        job = FrfastJob.new(wd,sample_id,port)
+        job = AnalyzeJob.new(wd,sample_id)
         reply_msg = {:id => payload['id'], :sample_id => sample_id}
         reply_msg[:status] = job.execute()
         reply(reply_msg)
