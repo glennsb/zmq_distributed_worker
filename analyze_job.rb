@@ -11,10 +11,11 @@ class AnalyzeJob
       return {:exit_status => 0}
     end
     begin
-      log_file = File.open(File.join(@base_dir,@sample_id,"logs","#{@sample_id}_full_worker.txt"),"w+")
+      log_file = File.open(File.join(@base_dir,"logs","#{@sample_id}_full_worker.txt"),"w+")
       log_file.sync = true
       logger = OMRF::FstreamLogger.new(log_file,log_file)
-      cmd = "#{@base_dir}/#{@sample_id}/analyze.sh"
+      conf_file = File.join(@base_dir,"..","..","metadata","analysis_config.yml")
+      cmd = "analyze_sequence_to_snps.rb -d 0 --local -o #{@base_dir} -c  #{conf_file} #{@sample_id}"
       c = OMRF::LoggedExternalCommand.new(cmd,logger)
       if c.run
         return {:exit_status => 0}
