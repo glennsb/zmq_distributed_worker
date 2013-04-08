@@ -26,6 +26,7 @@ logger = Thread.new do
     payload = JSON.parse(msg)
     jobs_mutex.synchronize do
       unless -1 == payload['id']
+        next unless jobs_running.include?(payload['id'])
         jobs_running.delete(payload['id'])
         job_statii[payload['id']][:finished_at] = Time.now
         payload[:run_time] = job_statii[payload['id']][:finished_at] - job_statii[payload['id']][:started_at]
