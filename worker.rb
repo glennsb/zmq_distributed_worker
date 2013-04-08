@@ -13,8 +13,11 @@ end
 @context = ZMQ::Context.new
 @sema = Mutex.new
 @keep_working = true
-@runners_to_have = 30
+@runners_to_have = ARGV.shift || 30
+@runners_to_have = @runners_to_have.to_i
 @runners = []
+
+@hostname = `uname -n`.chomp.sub(/\..*/,'')
 
 def error_check(rc)
   if ZMQ::Util.resultcode_ok?(rc)
@@ -28,7 +31,7 @@ end
 
 def reply(msg)
   @sema.synchronize do
-    @push_to_logger.send_string msg.to_json
+    @push_to_logger.send_string msg.merge({:host=>@hostname}).to_json
   end
 end
 
