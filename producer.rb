@@ -31,6 +31,7 @@ else
     error_check push.send_string(msg)
     puts "Sent #{msg}"
     start_port += 25
+    #sleep(10)
   end
 end
 push.close
