@@ -2,6 +2,7 @@ require 'ffi-rzmq'
 require 'securerandom'
 require 'json'
 require 'analyze_job'
+require 'frfast_job'
 
 Thread.abort_on_exception = true
 
@@ -63,9 +64,20 @@ error_check @push_to_logger.bind 'tcp://*:3555'
       else
         wd = payload['payload']['cwd']
         sample_id = payload['payload']['sample_id']
-        job = AnalyzeJob.new(wd,sample_id)
+        job_name = payload['payload']['job_type']
+        job = nil
+        if "analyze" == job_name
+          job = AnalyzeJob.new(wd,sample_id)
+        elsif "frfast" == job_name
+          port = payload['payload']['port'].to_i
+          job = FrfastJob.new(wd,sample_id,port)
+        end
         reply_msg = {:id => payload['id'], :sample_id => sample_id}
-        reply_msg[:status] = job.execute()
+        if nil != job
+          reply_msg[:status] = job.execute()
+        else
+          reply_msg[:status] = {:exit_status => -1, :trace=>"no such job type: #{job_name}"}
+        end
         reply(reply_msg)
       end
       msg = ''
