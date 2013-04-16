@@ -17,6 +17,8 @@ push = context.socket(ZMQ::PUSH)
 #error_check(push.setsockopt(ZMQ::LINGER, 0))
 error_check push.bind 'tcp://*:3556'
  
+job_type = ARGV.shift
+raise "Missing job_type" unless job_type
 cwd = ARGV.shift
 raise "Missing cwd param" unless cwd
 if "quit" == cwd
@@ -24,10 +26,10 @@ if "quit" == cwd
   msg = {:payload=>'quit',:id=>id}.to_json
   error_check push.send_string(msg)
 else
-  start_port = 5000
+  start_port = 5100
   ARGV.each do |id|
     msg_id = SecureRandom.uuid
-    msg = {:payload=>{:sample_id=>id,:cwd=>cwd, :port=>start_port},:id=>msg_id}.to_json
+    msg = {:payload=>{:sample_id=>id,:cwd=>cwd, :port=>start_port, :job_type=>job_type},:id=>msg_id}.to_json
     error_check push.send_string(msg)
     puts "Sent #{msg}"
     start_port += 25
