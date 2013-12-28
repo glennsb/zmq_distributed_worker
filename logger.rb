@@ -50,8 +50,10 @@ job_receiver = Thread.new do
       break
     end
     jobs_mutex.synchronize do
-      jobs_to_run << payload['id']
-      job_statii[payload['id']] = {:payload => payload, :received_at => Time.now}
+      if !jobs_running.include?(payload['id']) && !jobs_to_run.include?(payload['id'])
+        jobs_to_run << payload['id']
+        job_statii[payload['id']] = {:payload => payload, :received_at => Time.now}
+      end
     end
   end
 end
