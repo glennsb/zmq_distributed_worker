@@ -39,7 +39,7 @@ end
 
 job_receiver = Thread.new do
   incoming_job = context.socket(ZMQ::PULL)
-  incoming_job.connect('tcp://oak:3556')
+  incoming_job.connect('tcp://oak.shells.ngs.omrf.in:3556')
 
   msg = ''
   while incoming_job.recv_string(msg)
