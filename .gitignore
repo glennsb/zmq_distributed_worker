@@ -1,1 +1,4 @@
 ruby
+analyze_log.txt
+*.o*
+*.po*
