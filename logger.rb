@@ -44,7 +44,7 @@ job_receiver = Thread.new do
   msg = ''
   while incoming_job.recv_string(msg)
     next if '' == msg
-    payload = JSON.parse(msg)
+    payload = {:priority=>0}.merge(JSON.parse(msg))
     if 'quit' == payload['payload'] then
       shutdown_workers = true
       break
@@ -52,6 +52,7 @@ job_receiver = Thread.new do
     jobs_mutex.synchronize do
       if !jobs_running.include?(payload['id']) && !jobs_to_run.include?(payload['id'])
         jobs_to_run << payload['id']
+        jobs_to_run.sort! {|a,b| b[:priority] <=> a[:priority]}
         job_statii[payload['id']] = {:payload => payload, :received_at => Time.now}
       end
     end
