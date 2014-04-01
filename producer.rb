@@ -21,6 +21,8 @@ job_type = ARGV.shift
 raise "Missing job_type" unless job_type
 cwd = ARGV.shift
 raise "Missing cwd param" unless cwd
+priority = ARGV.shift.to_i
+raise "Missing priority param" unless priority
 if "quit" == cwd
   id = SecureRandom.uuid
   msg = {:payload=>'quit',:id=>id}.to_json
@@ -29,7 +31,7 @@ else
   start_port = 5100
   ARGV.each do |id|
     msg_id = SecureRandom.uuid
-    msg = {:payload=>{:sample_id=>id,:cwd=>cwd, :port=>start_port, :job_type=>job_type},:id=>msg_id}.to_json
+    msg = {:payload=>{:sample_id=>id,:cwd=>cwd, :priroity=>priority,:port=>start_port, :job_type=>job_type},:id=>msg_id}.to_json
     error_check push.send_string(msg)
     puts "Sent #{msg}"
     start_port += 25
