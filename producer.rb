@@ -31,7 +31,7 @@ else
   start_port = 5100
   ARGV.each do |id|
     msg_id = SecureRandom.uuid
-    msg = {:payload=>{:sample_id=>id,:cwd=>cwd, :priroity=>priority,:port=>start_port, :job_type=>job_type},:id=>msg_id}.to_json
+    msg = {:payload=>{:sample_id=>id,:cwd=>cwd, :priority=>priority,:port=>start_port, :job_type=>job_type},:id=>msg_id}.to_json
     error_check push.send_string(msg)
     puts "Sent #{msg}"
     start_port += 25
