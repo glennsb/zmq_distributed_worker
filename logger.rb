@@ -29,7 +29,7 @@ logger = Thread.new do
         next unless jobs_running.include?(payload['id'])
         jobs_running.delete(payload['id'])
         job_statii[payload['id']][:finished_at] = Time.now
-        payload[:run_time] = job_statii[payload['id']][:finished_at] - job_statii[payload['id']][:started_at]
+        payload[:run_time_hrs] = (job_statii[payload['id']][:finished_at] - job_statii[payload['id']][:started_at])/3600
       end
     end
     puts payload.to_json
@@ -50,8 +50,9 @@ job_receiver = Thread.new do
       break
     end
     jobs_mutex.synchronize do
-      if !jobs_running.include?(payload['id']) && !jobs_to_run.include?(payload['id'])
-        jobs_to_run << payload['id']
+      if !jobs_running.include?(payload['id']) && !jobs_to_run.find{|j| j[:id] == payload['id']}
+        jobs_to_run << {:id => payload['id'], :priority => payload[:priority]}
+        puts jobs_to_run.first.inspect
         jobs_to_run.sort! {|a,b| b[:priority] <=> a[:priority]}
         job_statii[payload['id']] = {:payload => payload, :received_at => Time.now}
       end
@@ -73,9 +74,9 @@ while true
   jobs_mutex.synchronize do
     work_to_do = jobs_to_run.shift
     if nil != work_to_do
-      jobs_running << work_to_do
-      job_statii[work_to_do][:started_at] = Time.now
-      work_to_do = job_statii[work_to_do][:payload]
+      jobs_running << work_to_do[:id]
+      job_statii[work_to_do[:id]][:started_at] = Time.now
+      work_to_do = job_statii[work_to_do[:id]][:payload]
     else
       work_to_do = {'id' => nil}
     end
