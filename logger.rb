@@ -52,7 +52,6 @@ job_receiver = Thread.new do
     jobs_mutex.synchronize do
       if !jobs_running.include?(payload['id']) && !jobs_to_run.find{|j| j[:id] == payload['id']}
         jobs_to_run << {:id => payload['id'], :priority => payload[:priority]}
-        puts jobs_to_run.first.inspect
         jobs_to_run.sort! {|a,b| b[:priority] <=> a[:priority]}
         job_statii[payload['id']] = {:payload => payload, :received_at => Time.now}
       end
