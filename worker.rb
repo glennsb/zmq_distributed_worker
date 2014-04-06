@@ -14,6 +14,7 @@ end
 @context = ZMQ::Context.new
 @sema = Mutex.new
 @keep_working = true
+@host = ARGV.shift
 @runners_to_have = ARGV.shift || 30
 @runners_to_have = @runners_to_have.to_i
 @runners = []
@@ -42,7 +43,7 @@ error_check @push_to_logger.bind 'tcp://*:3555'
 @runners_to_have.times do |i|
   @runners << Thread.new do
     request_work = @context.socket(ZMQ::REQ)
-    rc = request_work.connect 'tcp://oak.shells.ngs.omrf.in:3557'
+    rc = request_work.connect "tcp://#{@host}"
     error_check(rc)
     while @keep_working do
       msg = ''
