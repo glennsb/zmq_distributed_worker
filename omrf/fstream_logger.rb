@@ -16,6 +16,11 @@ module OMRF
       @err.close unless @err.closed?
     end
 
+    def flush()
+      @out.flush unless @out.closed?
+      @err.flush unless @err.closed?
+    end
+
     def log(type,msg)
       case type
         when :stderr
