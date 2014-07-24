@@ -27,7 +27,7 @@ end
 opts.on("-w","--working-dir DIR","Set the working directory from which the job will be run") do |dir|
   options[:cwd] = dir
 end
-opts.on("-p","--priority [INT]","Set priority of jobs") do |i|
+opts.on("-p","--priority [INT]","Set priority of jobs (1 is default, 0 is lowest, higher is more important)") do |i|
   options[:priority] = i.to_i
 end
 opts.on("-d","--delay [DELAY]","Delay submitting jobs by DELAY minutes at a time") do |delay|
