@@ -1,6 +1,7 @@
 require 'ffi-rzmq'
 require 'securerandom'
 require 'json'
+require 'colorize'
 
 @producer_host = ARGV.pop
 
@@ -34,7 +35,12 @@ logger = Thread.new do
         payload[:run_time_hrs] = (job_statii[payload['id']][:finished_at] - job_statii[payload['id']][:started_at])/3600
       end
     end
-    puts payload.to_json
+    color = if payload && payload[:status] && payload[:status][:exit_status]
+              :red
+            else
+              :default
+            end
+    puts payload.to_json.to_s.colorize(color)
     msg = ''
   end
 end
