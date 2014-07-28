@@ -35,7 +35,7 @@ logger = Thread.new do
         payload[:run_time_hrs] = (job_statii[payload['id']][:finished_at] - job_statii[payload['id']][:started_at])/3600
       end
     end
-    color = if payload && payload[:status] && payload[:status][:exit_status]
+    color = if payload && payload[:status] && payload[:status][:exit_status] && 0 != payload[:status][:exit_status]
               :red
             else
               :default
