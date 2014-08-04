@@ -14,6 +14,15 @@ job_statii = {}
 jobs_running = []
 shutdown_workers = false
 
+Signal.trap("USR1") do
+  STDERR.puts <<-EOF
+#{jobs_to_run.size} jobs in queue
+#{jobs_running.size} jobs running
+#{jobs_to_run.first} is next job
+
+EOF
+end
+
 context = ZMQ::Context.new
 
 logger = Thread.new do
@@ -22,7 +31,7 @@ logger = Thread.new do
   ARGV.each do |worker_host|
     incoming_results.connect("tcp://#{worker_host}:3555")
   end
- 
+
   msg = ''
   while incoming_results.recv_string(msg)
     next if '' == msg
