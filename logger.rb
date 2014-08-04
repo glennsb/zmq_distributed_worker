@@ -35,13 +35,13 @@ logger = Thread.new do
   msg = ''
   while incoming_results.recv_string(msg)
     next if '' == msg
-    payload = JSON.parse(msg)
+    payload = JSON.parse(msg, :symbolize_names => true)
     jobs_mutex.synchronize do
-      unless -1 == payload['id']
-        next unless jobs_running.include?(payload['id'])
-        jobs_running.delete(payload['id'])
-        job_statii[payload['id']][:finished_at] = Time.now
-        payload[:run_time_hrs] = (job_statii[payload['id']][:finished_at] - job_statii[payload['id']][:started_at])/3600
+      unless -1 == payload[:id]
+        next unless jobs_running.include?(payload[:id])
+        jobs_running.delete(payload[:id])
+        job_statii[payload[:id]][:finished_at] = Time.now
+        payload[:run_time_hrs] = (job_statii[payload[:id]][:finished_at] - job_statii[payload[:id]][:started_at])/3600
       end
     end
     color = if payload && payload[:status] && payload[:status][:exit_status] && 0 != payload[:status][:exit_status]
@@ -61,16 +61,16 @@ job_receiver = Thread.new do
   msg = ''
   while incoming_job.recv_string(msg)
     next if '' == msg
-    payload = {:priority=>0}.merge(JSON.parse(msg))
-    if 'quit' == payload['payload'] then
+    payload = {:priority=>0}.merge(JSON.parse(msg, :symbolize_names => true))
+    if 'quit' == payload[:payload] then
       shutdown_workers = true
       break
     end
     jobs_mutex.synchronize do
-      if !jobs_running.include?(payload['id']) && !jobs_to_run.find{|j| j[:id] == payload['id']}
-        jobs_to_run << {:id => payload['id'], :priority => payload[:priority]}
+      if !jobs_running.include?(payload[:id]) && !jobs_to_run.find{|j| j[:id] == payload[:id]}
+        jobs_to_run << {:id => payload[:id], :priority => payload[:priority]}
         jobs_to_run.sort! {|a,b| b[:priority] <=> a[:priority]}
-        job_statii[payload['id']] = {:payload => payload, :received_at => Time.now}
+        job_statii[payload[:id]] = {:payload => payload, :received_at => Time.now}
       end
     end
   end
@@ -94,7 +94,7 @@ while true
       job_statii[work_to_do[:id]][:started_at] = Time.now
       work_to_do = job_statii[work_to_do[:id]][:payload]
     else
-      work_to_do = {'id' => nil}
+      work_to_do = {:id => nil}
     end
   end
   job_controller.send_string(work_to_do.to_json)
