@@ -60,11 +60,10 @@ end
     payload = {
       :sample_id=>id,
       :cwd=>options[:cwd],
-      :priority=>options[:priority],
       :port=>start_port,
       :job_type=>options[:job_type]
     }
-    msg = {:payload=>payload,:id=>msg_id}.to_json
+    msg = {:payload=>payload, :id=>msg_id, :priority=>options[:priority]}.to_json
     error_check push.send_string(msg)
     num_submitted+=1
     puts "Sent #{msg}"
