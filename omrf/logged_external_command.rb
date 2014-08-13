@@ -40,7 +40,7 @@ class LoggedExternalCommand
   end
 
   def non_blocking_read_to_log(input,type)
-    while result = IO.select([input], nil, nil, 10)
+    while !input.closed? && result = IO.select([input], nil, nil, 10)
       next if result.empty?
       begin
         line = input.readline()

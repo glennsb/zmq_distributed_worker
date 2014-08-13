@@ -10,9 +10,10 @@ module OMRF
       @out = out
       @err = err
     end
-    
+
     def teardown
-      @out.close
+      self.flush()
+      @out.close unless @out.closed?
       @err.close unless @err.closed?
     end
 
