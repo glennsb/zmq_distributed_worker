@@ -13,6 +13,10 @@ def error_check(rc)
   end
 end
 
+def already_finished?(dir,sample)
+  File.exists? File.join( dir, sample, "finished.txt")
+end
+
 context = ZMQ::Context.new
 push = context.socket(ZMQ::PUSH)
 #error_check(push.setsockopt(ZMQ::LINGER, 0))
@@ -56,6 +60,7 @@ end
   start_port = 5100
   num_submitted = 0
   ARGV.each do |id|
+    next if already_finished?(options[:cwd],id)
     msg_id = SecureRandom.uuid
     payload = {
       :sample_id=>id,
