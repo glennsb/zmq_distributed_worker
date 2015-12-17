@@ -80,6 +80,7 @@ error_check @push_to_logger.bind 'tcp://*:3555'
           reply_msg[:status] = {:exit_status => -1, :trace=>"no such job type: #{job_name}"}
         end
         reply(reply_msg)
+        GC.start
       end
       msg = ''
     end #@keep_workinging
