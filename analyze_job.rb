@@ -18,7 +18,7 @@ class AnalyzeJob
       err_file.sync = true
       logger = OMRF::FstreamLogger.new(log_file,err_file)
       logger.extend(OMRF::LogDater)
-      conf_file = File.join(@base_dir,"..","..","metadata","analysis_config.yml")
+      conf_file = File.join(@base_dir,"..","metadata","analysis_config.yml")
       cmd = "analyze_sequence_to_snps.rb -d 120 --local -o #{@base_dir} -c  #{conf_file} #{@sample_id}"
       c = OMRF::LoggedExternalCommand.new(cmd,logger)
       if c.run
