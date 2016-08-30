@@ -19,7 +19,7 @@ class AnalyzeJob
       logger = OMRF::FstreamLogger.new(log_file,err_file)
       logger.extend(OMRF::LogDater)
       conf_file = File.join(@base_dir,"..","metadata","analysis_config.yml")
-      cmd = "analyze_sequence_to_snps.rb -d 120 --local -o #{@base_dir} -c  #{conf_file} #{@sample_id}"
+      cmd = "fastq_to_gvcf.rb -d 120 --local -o #{@base_dir} -c  #{conf_file} #{@sample_id}"
       c = OMRF::LoggedExternalCommand.new(cmd,logger)
       if c.run
         log_file.flush()
